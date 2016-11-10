@@ -21,8 +21,10 @@ class DedupeTask(Task):
             logger.debug('Queueing %s [%s]', task_id, key)
             return super(DedupeTask, self).apply_async(args=args, kwargs=kwargs, **kw)
 
-        existing_task_id = self.storage.get(key).decode('utf-8')
-        if existing_task_id == task_id:
+        existing_task_id = self.storage.get(key)
+        if existing_task_id:
+            existing_task_id = existing_task_id.decode('utf-8')
+        if existing_task_id == task_id or existing_task_id is None:
             # This should be a retry, so add it to the broker anyway
             logger.debug('Queueing %s for retry [%s]', task_id, key)
             return super(DedupeTask, self).apply_async(args=args, kwargs=kwargs, **kw)
