@@ -21,7 +21,7 @@ class DedupeTask(Task):
             logger.debug('Queueing %s [%s]', task_id, key)
             return super(DedupeTask, self).apply_async(args=args, kwargs=kwargs, **kw)
 
-        existing_task_id = self.storage.get(key)
+        existing_task_id = self.storage.get(key).decode('utf-8')
         if existing_task_id == task_id:
             # This should be a retry, so add it to the broker anyway
             logger.debug('Queueing %s for retry [%s]', task_id, key)
@@ -46,8 +46,8 @@ class DedupeTask(Task):
         args = args or tuple()
         kwargs = kwargs or dict()
 
-        arg_string = ','.join([str(a) for a in args])
-        kwarg_string = ','.join(['%s=%s' % (k, v) for k, v in kwargs.iteritems()])
+        arg_string = ','.join([str(a) for a in args]).encode('utf-8')
+        kwarg_string = ','.join(['%s=%s' % (k, v) for k, v in kwargs.items()]).encode('utf-8')
         arg_hash = hashlib.md5(arg_string + kwarg_string).hexdigest()
         import_path = '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
         return 'cd:%s:%s' % (import_path, arg_hash)
